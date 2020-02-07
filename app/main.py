@@ -160,7 +160,7 @@ models = [
     {"architecture": {"id": "XLM"}, "id": "xlm-mlm-17-1280",
         "description": "16-layer, 1280-hidden, 16-heads. XLM model trained with MLM (Masked Language Modeling) on 17 languages."},
     {"architecture": {"id": "XLM"}, "id": "xlm-mlm-100-1280",
-        "description": "16-layer, 1280-hidden, 16-heads. XLM model trained with MLM (Masked Language Modeling) on 100 languages."},
+        "description": "16-layer, 1280-hidden, 16-heads. xXLM model trained with MLM (Masked Language Modeling) on 100 languages."},
 
     # RoBERTa
     {"architecture": {"id": "RoBERTa"}, "id": "roberta-base",
