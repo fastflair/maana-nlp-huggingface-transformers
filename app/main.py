@@ -9,6 +9,9 @@ import requests
 from dotenv import load_dotenv
 import os
 
+# Transformers
+from transformers import BertModel, BertTokenizer
+
 # Load environment variables
 load_dotenv()
 
@@ -259,6 +262,7 @@ type_defs = gql("""
 
     type Query {
         models: [Model!]!
+        test(text: String!): [String!]!
     }
 
 """)
@@ -269,24 +273,46 @@ query = QueryType()
 # Resolvers are simple python functions
 @query.field("models")
 def resolve_models(_, info):
-
-    # # A resolver can access the graphql client via the context.
-    # client = info.context["client"]
-
-    # # Query all maana services.
-    # result = client.execute('''
-    # {
-    #     allServices {
-    #         id
-    #         name
-    #     }
-    # }
-    # ''')
-
-    # print(result)
-
     return models
 
+
+# Cache the model instance
+bert_model = None
+bert_tokenizer = None
+
+# Preprocessing text for BERT
+@query.field("test")
+def resolve_test(*_, text):
+    # 1. Load (and cache) the model and tokenizer
+    global bert_model
+    global bert_tokenizer
+    if (bert_model == None):
+        bert_model = BertModel.from_pretrained('bert-base-uncased')
+        bert_tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
+    # 2. Tokenize input text
+    tokens = bert_tokenizer.tokenize(text)
+
+    # 3. Add special tokens
+    special_tokens = ['[CLS]'] + tokens + ['[SEP]']
+
+    # 4. Pad
+    maxlen = 12
+    padded_tokens = special_tokens + \
+        ['[PAD]' for _ in range(maxlen - len(special_tokens))]
+
+    # 5. Attention mask
+    attn_mask = [1 if tok != '[PAD]' else 0 for tok in padded_tokens]
+
+    # 6. Segment IDs (for sequence pairs)
+    token_ids = bert_tokenizer.convert_tokens_to_ids(padded_tokens)
+
+    # 7. Convert sequence to integers
+    encoding = bert_tokenizer.encode(
+        "Here is some text to encode", add_special_tokens=True)
+    print(encoding)
+
+    return padded_tokens
 
 # # Map resolver functions to custom type fields using ObjectType
 # person = ObjectType("Person")
